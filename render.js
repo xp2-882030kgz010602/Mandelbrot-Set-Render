@@ -27,11 +27,12 @@ if(!use_preset){
 	band_spacing=preset.band_spacing;
 	smoothing=preset.smoothing;
 }
+y=-y;//Y goes down on a canvas, I don't know why
 var points=[];
 var row;
 var iterated=false;
 var create_pixel=function(x,y,x_,y_){
-	return {origx:x,origy:y,x:0,y:0,canvasx:x_,canvasy:y_,iterations:0};
+	return {origx:x,origy:y,x:0,y:0,canvasx:x_,canvasy:y_};
 };
 function setup() {
 	createCanvas(size,size);
@@ -75,15 +76,17 @@ var iteration_to_color=function(n,m){
 	return [r,g,b];
 };
 var counter=0;
+var iterations=0;
 function draw() {
 	for(var i=0;i<size;i++){
 		if(counter>=points.length){
 			counter=0;
+			iterations+=1;
 		}
 		var point_=points[counter];
 		var m=Math.sqrt(point_.x*point_.x+point_.y*point_.y);
 		if(m>2){
-			var color_=iteration_to_color(point_.iterations,m);
+			var color_=iteration_to_color(iterations,m);
 			stroke(color_[0],color_[1],color_[2]);
 			point(point_.canvasx,point_.canvasy);
 			points.splice(counter,1);
@@ -95,7 +98,6 @@ function draw() {
 		var y2=2*point_.x*point_.y+ypos;
 		points[counter].x=x2;
 		points[counter].y=y2;
-		points[counter].iterations+=1;
 		counter+=1;
 	}	
 	/*for(var y_=0;y_<size;y_++){
