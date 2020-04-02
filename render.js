@@ -27,20 +27,30 @@ if(!use_preset){
 	band_spacing=preset.band_spacing;
 	smoothing=preset.smoothing;
 }
-function setup() {
-	createCanvas(size,size);
-};
 var points=[];
 var row;
 var iterated=false;
-var x_=0;
-for(var i=0;i<size;i++){
+var create_pixel=function(x,y,x_,y_){
+	return {origx:x,origy:y,x:0,y:0,canvasx:x_,canvasy:y_,iterations:0};
+};
+function setup() {
+	createCanvas(size,size);
+	background(0);
+	for(var x_=0;x_<size;x_++){
+		for(var y_=0;y_<size;y_++){
+			var x2=x+2*(x_-(size-1)/2)/(zoom*(size-1));
+			var y2=y+2*(y_-(size-1)/2)/(zoom*(size-1));
+			points.push(create_pixel(x2,y2,x_,y_));
+		}
+	}
+};
+/*for(var i=0;i<size;i++){
 	row=[];
 	for(var j=0;j<size;j++){
 		row.push([0,0,0,false])
 	}
 	points.push(row);
-}
+}*/
 var iteration_to_color=function(n,m){
 	m=(m-2)/2;
 	m=1-m;
@@ -64,8 +74,31 @@ var iteration_to_color=function(n,m){
 	b=c1[2]*n_+c2[2]*(1-n_);
 	return [r,g,b];
 };
+var counter=0;
 function draw() {
-	for(var y_=0;y_<size;y_++){
+	for(var i=0;i<size;i++){
+		if(counter>=points.length){
+			counter=0;
+		}
+		var point_=points[counter];
+		var m=Math.sqrt(point_.x*point_.x+point_.y*point_.y);
+		if(m>2){
+			var color_=iteration_to_color(point_.iterations,m);
+			stroke(color_[0],color_[1],color_[2]);
+			point(point_.canvasx,point_.canvasy);
+			points.splice(counter,1);
+			continue;
+		}
+		var xpos=point_.origx;
+		var ypos=point_.origy;
+		var x2=point_.x*point_.x-point_.y*point_.y+xpos;
+		var y2=2*point_.x*point_.y+ypos;
+		points[counter].x=x2;
+		points[counter].y=y2;
+		points[counter].iterations+=1;
+		counter+=1;
+	}	
+	/*for(var y_=0;y_<size;y_++){
 		if(points[y_][x_][0]*points[y_][x_][0]+points[y_][x_][1]*points[y_][x_][1]<=4){
 			var x2=x+2*(x_-(size-1)/2)/(zoom*(size-1));
 			var y2=y+2*(y_-(size-1)/2)/(zoom*(size-1));
@@ -98,6 +131,6 @@ function draw() {
 	x_+=1;
 	if(x_===size){
 		x_=0;
-	}
+	}*/
 	//console.log(x_);
 };
