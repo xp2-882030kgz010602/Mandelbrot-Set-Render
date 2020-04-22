@@ -136,3 +136,13 @@ function draw() {
 	}*/
 	//console.log(x_);
 };
+function mouseReleased(){
+        if(mouseX<0||mouseY<0||mouseX>size||mouseY>size){
+                return;
+        }
+        if(!eval(prompt("Do you want to save your render?","true"))){
+                return;
+        }
+        alert("Creating image that you can right-click/long-press to save. This might take a while.");
+        document.getElementById("an_image").src=document.getElementById("defaultCanvas0").toDataURL();
+};
