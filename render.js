@@ -77,7 +77,7 @@ function setup() {
 	points.push(row);
 }*/
 var iteration_to_color=function(n,m){
-	m=(m-2)/2;
+	m=(m-threshold)/threshold/(threshold-1);
 	m=1-m;
 	m*=smoothing;
 	if(m<0){
