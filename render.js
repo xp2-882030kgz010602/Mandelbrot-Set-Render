@@ -6,28 +6,52 @@ var zoom;
 var band_spacing;
 var smoothing;
 var use_preset=eval(prompt("Use a preset?","false"));
+var algorithm;
+var threshold;
 var preset;
 if(!use_preset){
 	size=eval(prompt("Size of render","625"));
 	colors=eval(prompt("Colors","[[255,0,0],[255,255,0],[0,255,0],[255,255,0]]"));
-	x=eval(prompt("Center X","0"));
-	y=eval(prompt("Center Y","0"));
-	zoom=eval(prompt("Zoom","0.5"));
-	band_spacing=eval(prompt("Band spacing","0.5"));
-	smoothing=eval(prompt("Band smoothing (Kind of broken)","0"));
-	preset={size:size,colors:colors,x:x,y:y,zoom:zoom,band_spacing:band_spacing,smoothing:smoothing};
+	x=prompt("Center X","0");
+	y=prompt("Center Y","0");
+	zoom=prompt("Zoom","0.5");
+	band_spacing=prompt("Band spacing","0.5");
+	smoothing=prompt("Band smoothing (Kind of broken)","0");
+	threshold=prompt("Escape Threshold","2");
+	algorithm=prompt("[ADVANCED SETTING] Algorithm","algorithm=function(xpos,ypos,x,y){return [x*x-y*y+xpos,2*x*y+ypos];}");
+	preset={size:size,colors:colors,x:x,y:y,zoom:zoom,band_spacing:band_spacing,smoothing:smoothing,threshold:threshold,algorithm:algorithm};
 	prompt("You can copy these parameters out as a preset, if you want:",JSON.stringify(preset));
+	x=eval(x);
+	y=eval(y);
+	zoom=eval(zoom);
+	band_spacing=eval(band_spacing);
+	smoothing=eval(smoothing);
+	threshold=eval(threshold);
+	algorithm=eval(algorithm);
 }else{
 	preset=JSON.parse(prompt("Input your preset here:"));
-	size=preset.size;
+	size=eval(preset.size);
 	colors=preset.colors;
-	x=preset.x;
-	y=preset.y;
-	zoom=preset.zoom;
-	band_spacing=preset.band_spacing;
-	smoothing=preset.smoothing;
+	x=eval(preset.x);
+	y=eval(preset.y);
+	zoom=eval(preset.zoom);
+	band_spacing=eval(preset.band_spacing);
+	smoothing=eval(preset.smoothing);
+	if(!preset.threshold){
+		threshold=2;
+	}else{
+		threshold=eval(preset.threshold);
+	}
+	if(!preset.algorithm){
+		algorithm=function(xpos,ypos,x,y){
+			return [x*x-y*y+xpos,2*x*y+ypos];
+		};
+	}else{
+		algorithm=eval(preset.algorithm);
+	}
 }
 y=-y;//Y goes down on a canvas, I don't know why
+var speed=eval(prompt("How many points to iterate through per frame?",size));
 var points=[];
 var row;
 var iterated=false;
@@ -78,14 +102,14 @@ var iteration_to_color=function(n,m){
 var counter=0;
 var iterations=0;
 function draw() {
-	for(var i=0;i<size;i++){
+	for(var i=0;i<speed;i++){
 		if(counter>=points.length){
 			counter=0;
 			iterations+=1;
 		}
 		var point_=points[counter];
 		var m=Math.sqrt(point_.x*point_.x+point_.y*point_.y);
-		if(m>2){
+		if(m>threshold){
 			var color_=iteration_to_color(iterations,m);
 			stroke(color_[0],color_[1],color_[2]);
 			point(point_.canvasx,point_.canvasy);
@@ -94,10 +118,15 @@ function draw() {
 		}
 		var xpos=point_.origx;
 		var ypos=point_.origy;
-		var x2=point_.x*point_.x-point_.y*point_.y+xpos;
+		var x2=point_.x;
+		var y2=point_.y;
+		var newpos=algorithm(xpos,ypos,x2,y2);
+		points[counter].x=newpos[0];
+		points[counter].y=newpos[1];
+		/*var x2=point_.x*point_.x-point_.y*point_.y+xpos;
 		var y2=2*point_.x*point_.y+ypos;
 		points[counter].x=x2;
-		points[counter].y=y2;
+		points[counter].y=y2;*/
 		counter+=1;
 	}	
 	/*for(var y_=0;y_<size;y_++){
@@ -140,7 +169,7 @@ function mouseReleased(){
         if(mouseX<0||mouseY<0||mouseX>size||mouseY>size){
                 return;
         }
-        if(!eval(prompt("Do you want to save your render?","true"))){
+        if(!eval(prompt("Do you want to save your render? Microsoft Edge allows you to save straight from canvas, but other browsers require you to create an image before it can be saved.","true"))){
                 return;
         }
         alert("Creating image that you can right-click/long-press to save. This might take a while.");
