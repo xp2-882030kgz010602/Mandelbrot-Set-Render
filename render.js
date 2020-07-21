@@ -5,6 +5,7 @@ var y;
 var zoom;
 var band_spacing;
 var smoothing;
+var old_smoothing;
 var use_preset=eval(prompt("Use a preset?","false"));
 var algorithm;
 var threshold;
@@ -17,15 +18,17 @@ if(!use_preset){
 	zoom=prompt("Zoom","0.5");
 	band_spacing=prompt("Band spacing","0.5");
 	smoothing=prompt("Band smoothing (Kind of broken)","0");
+	old_smoothing=prompt("Use old smoothing algorithm?","false");
 	threshold=prompt("Escape Threshold","2");
 	algorithm=prompt("[ADVANCED SETTING] Algorithm","algorithm=function(xpos,ypos,x,y){return [x*x-y*y+xpos,2*x*y+ypos];}");
-	preset={size:size,colors:colors,x:x,y:y,zoom:zoom,band_spacing:band_spacing,smoothing:smoothing,threshold:threshold,algorithm:algorithm};
+	preset={size:size,colors:colors,x:x,y:y,zoom:zoom,band_spacing:band_spacing,smoothing:smoothing,old_smoothing:old_smoothing,threshold:threshold,algorithm:algorithm};
 	prompt("You can copy these parameters out as a preset, if you want:",JSON.stringify(preset));
 	x=eval(x);
 	y=eval(y);
 	zoom=eval(zoom);
 	band_spacing=eval(band_spacing);
 	smoothing=eval(smoothing);
+	old_smoothing=eval(old_smoothing);
 	threshold=eval(threshold);
 	algorithm=eval(algorithm);
 }else{
@@ -37,6 +40,11 @@ if(!use_preset){
 	zoom=eval(preset.zoom);
 	band_spacing=eval(preset.band_spacing);
 	smoothing=eval(preset.smoothing);
+	if(!preset.old_smoothing){
+		old_smoothing=true;
+	}else{
+		old_smoothing=eval(preset.old_smoothing);
+	}
 	if(!preset.threshold){
 		threshold=2;
 	}else{
@@ -78,10 +86,15 @@ function setup() {
 }*/
 var start=threshold;
 var end;//=algorithm(threshold,0,threshold,0)[0];
+if(old_smoothing){
+	end=algorithm(threshold,0,threshold,0)[0];
+}
 var iteration_to_color=function(n,m,p){
 	var origm=Math.sqrt(p.origx*p.origx+p.origy*p.origy);
-	end=algorithm(p.origx,p.origy,p.origx/origm*threshold,p.origy/origm*threshold);
-	end=Math.sqrt(end[0]*end[0]+end[1]*end[1]);
+	if(!old_smoothing){
+		end=algorithm(p.origx,p.origy,p.origx/origm*threshold,p.origy/origm*threshold);
+		end=Math.sqrt(end[0]*end[0]+end[1]*end[1]);
+	}
 	m=(m-start)/(end-start);
 	m=1-m;
 	m*=smoothing;
