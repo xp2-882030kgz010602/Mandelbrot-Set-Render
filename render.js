@@ -56,7 +56,7 @@ var points=[];
 var row;
 var iterated=false;
 var create_pixel=function(x,y,x_,y_){
-	return {origx:x,origy:y,x:0,y:0,canvasx:x_,canvasy:y_};
+	return {origx:x,origy:y,x:0,y:0,canvasx:x_,canvasy:y_/*,origm:Math.sqrt(x*x+y*y),nx:(x/origm*threshold||0),ny:(y/origm*threshold||0)*/};
 };
 function setup() {
 	createCanvas(size,size);
@@ -76,10 +76,18 @@ function setup() {
 	}
 	points.push(row);
 }*/
-var iteration_to_color=function(n,m){
-	m=(m-threshold)/threshold/(threshold-1);
+var start=threshold;
+var end;//=algorithm(threshold,0,threshold,0)[0];
+var iteration_to_color=function(n,m,p){
+	var origm=Math.sqrt(p.origx*p.origx+p.origy*p.origy);
+	end=algorithm(p.origx,p.origy,p.origx/origm*threshold,p.origy/origm*threshold);
+	end=Math.sqrt(end[0]*end[0]+end[1]*end[1]);
+	m=(m-start)/(end-start);
 	m=1-m;
 	m*=smoothing;
+	/*if(m<0&&m>=-1){
+		m=-m;
+	}*/
 	if(m<0){
 		m=0;
 	}
@@ -87,6 +95,9 @@ var iteration_to_color=function(n,m){
 		m=1;
 	}
 	var n_=Math.pow(n+m,band_spacing);
+	if(n_+""==="NaN"){
+		n_=1;
+	}
 	var r;
 	var g;
 	var b;
@@ -110,7 +121,7 @@ function draw() {
 		var point_=points[counter];
 		var m=Math.sqrt(point_.x*point_.x+point_.y*point_.y);
 		if(m>threshold){
-			var color_=iteration_to_color(iterations,m);
+			var color_=iteration_to_color(iterations,m,point_);
 			stroke(color_[0],color_[1],color_[2]);
 			point(point_.canvasx,point_.canvasy);
 			points.splice(counter,1);
