@@ -109,7 +109,7 @@ var iteration_to_color=function(n,m,p){
 	}
 	var n_=Math.pow(n+m,band_spacing);
 	if(n_+""==="NaN"){
-		n_=1;
+		n_=Math.pow(n,band_spacing);
 	}
 	var r;
 	var g;
